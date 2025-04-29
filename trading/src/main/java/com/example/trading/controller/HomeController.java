@@ -7,11 +7,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@CrossOrigin
-@RequestMapping(value = "api/users")
 public class HomeController {
 
-    @GetMapping(value = "/v")
+    @GetMapping
     public String home(){
         return "Welcome to trading platform";
     }
