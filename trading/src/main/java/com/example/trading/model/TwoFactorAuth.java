@@ -12,4 +12,20 @@ public class TwoFactorAuth {
     private boolean isEnabled =false;
     @JsonProperty("sendTo")
     private VerificationType sendTo;
+
+    public VerificationType getSendTo() {
+        return sendTo;
+    }
+
+    public void setSendTo(VerificationType sendTo) {
+        this.sendTo = sendTo;
+    }
+
+    public boolean isEnabled() {
+        return isEnabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        isEnabled = enabled;
+    }
 }
