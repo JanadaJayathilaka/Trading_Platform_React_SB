@@ -2,6 +2,7 @@ package com.example.trading.service;
 
 import com.example.trading.config.JwtProvider;
 import com.example.trading.domain.VerificationType;
+import com.example.trading.model.TwoFactorAuth;
 import com.example.trading.model.User;
 import com.example.trading.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,12 +49,21 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public User enableTwoFactorAuthentication(VerificationType verificationType, String sendTo, User user) {
-        return null;
+        TwoFactorAuth twoFactorAuth = new TwoFactorAuth();
+        twoFactorAuth.setEnabled(true);
+        twoFactorAuth.setSendTo(verificationType);
+
+        user.setTwoFactorAuth(twoFactorAuth);
+
+
+        return userRepository.save(user);
     }
 
 
     @Override
     public User updatePassword(User user, String newPassword) {
-        return null;
+        user.setPassword(newPassword);
+
+        return userRepository.save(user);
     }
 }
