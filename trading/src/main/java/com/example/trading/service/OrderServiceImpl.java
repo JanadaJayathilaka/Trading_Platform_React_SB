@@ -2,12 +2,10 @@ package com.example.trading.service;
 
 import com.example.trading.domain.OrderStatus;
 import com.example.trading.domain.OrderType;
-import com.example.trading.model.Coin;
-import com.example.trading.model.Order;
-import com.example.trading.model.OrderItem;
-import com.example.trading.model.User;
+import com.example.trading.model.*;
 import com.example.trading.repository.OrderItemRepository;
 import com.example.trading.repository.OrderRepository;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +26,9 @@ public class OrderServiceImpl implements OrderService{
     @Autowired
     private OrderItemRepository orderItemRepository;
 
+    @Autowired
+    private  AssetService assetService;
+
     @Override
     public Order createOrder(User user, OrderItem orderItem, OrderType orderType) {
         double price = orderItem.getCoin().getCurrentPrice()*orderItem.getQuantity();
@@ -45,7 +46,7 @@ public class OrderServiceImpl implements OrderService{
 
     @Override
     public Order getOrderByID(Long orderId) throws Exception {
-        return orderRepository.findById(orderId).orElseThrow(()-> new Exception("order not found"));;
+        return orderRepository.findById(orderId).orElseThrow(()-> new Exception("order not found"));
     }
 
     @Override
@@ -78,6 +79,16 @@ public class OrderServiceImpl implements OrderService{
         order.setOrderType(OrderType.BUY);
         Order saveOrder = orderRepository.save(order);
 
+        Asset oldAsset = assetService.findAssetByUserIdAndCoinId(order.getUser().getId(),
+                order.getOrderItem().getCoin().getId());
+
+        if(oldAsset==null){
+            assetService.createAsset(user,orderItem.getCoin(),orderItem.getQuantity());
+        }
+        else{
+            assetService.updateAsset(oldAsset.getId(), quantity);
+        }
+
         return saveOrder;
 
     }
@@ -89,8 +100,18 @@ public class OrderServiceImpl implements OrderService{
         }
         double sellPrice = coin.getCurrentPrice();
 
-        double buyPrice = assetTosell.getPrice();
-        OrderItem orderItem = createOrderItem(coin,quantity,buyPrice,sellPrice);
+        Asset assetToSell = assetService.findAssetByUserIdAndCoinId(
+                user.getId(),
+                coin.getId());
+
+        double buyPrice = assetToSell.getBuyPrice();
+        if(assetToSell != null){
+            OrderItem orderItem = createOrderItem(
+                    coin,
+                    quantity,
+                    buyPrice,
+                    sellPrice);
+
         Order order =createOrder(user,orderItem,OrderType.SELL);
         orderItem.setOrder(order);
 
@@ -98,17 +119,22 @@ public class OrderServiceImpl implements OrderService{
             order.setStatus(OrderStatus.SUCCESS);
             order.setOrderType(OrderType.SELL);
             Order saveOrder = orderRepository.save(order);
+
             walletService.payOrderPayment(order,user);
 
-            Asset updatedAsset = AssetService.updateAsset(assetTosell.getId(), -quantity);
+            Asset updatedAsset = assetService.updateAsset(
+                    assetToSell.getId(), -quantity
+            );
+
             if(updatedAsset.getQuantity()*coin.getCurrentPrice()<=1){
-                assetService.deleteAsset(updatedAsset.getId);
+                assetService.deleteAsset(updatedAsset.getId());
             }
 
             return saveOrder;
         }
         throw  new Exception("Insufficient quantity to sell");
-
+}
+        throw new Exception("Asset not found");
     }
     @Override
     @Transactional
