@@ -51,7 +51,7 @@ public class OrderServiceImpl implements OrderService{
 
     @Override
     public List<Order> getAllOrderOfUser(Long userId, OrderType orderType, String assetSymbol) {
-        return orderRepository.findByUserID(userId);
+        return orderRepository.findByUserId(userId);
     }
 
     private OrderItem createOrderItem(Coin coin,double quantity,double buyPrice,double sellPrice){

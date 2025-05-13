@@ -8,6 +8,7 @@ import com.example.trading.response.AuthResponse;
 import com.example.trading.service.CustomUserDetailsService;
 import com.example.trading.service.EmailService;
 import com.example.trading.service.TwoFactorOtpService;
+import com.example.trading.service.WatchListService;
 import com.example.trading.utils.OtpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -35,6 +36,9 @@ public class AuthController {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private WatchListService watchListService;
+
     @PostMapping("/signup")
     public ResponseEntity<AuthResponse> register(@RequestBody User user) throws Exception {
 
@@ -50,6 +54,8 @@ public class AuthController {
 
 
         User savedUser = userRepository.save(newUser);
+
+        watchListService.createWatchList(savedUser);
 
         Authentication auth = new UsernamePasswordAuthenticationToken(
                 user.getEmail(),

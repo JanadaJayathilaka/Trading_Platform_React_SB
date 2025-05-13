@@ -5,5 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface VerificationCodeRepository extends JpaRepository<VerificationCode,Long> {
 
-    public VerificationCode findByUserID(Long userId);
+    public VerificationCode findByUserId(Long userId);
 }

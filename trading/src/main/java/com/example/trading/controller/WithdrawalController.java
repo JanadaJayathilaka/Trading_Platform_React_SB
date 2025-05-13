@@ -1,10 +1,12 @@
 package com.example.trading.controller;
 
 
+import com.example.trading.domain.WalletTransactionType;
 import com.example.trading.model.User;
 import com.example.trading.model.Wallet;
 import com.example.trading.model.WalletTransaction;
 import com.example.trading.model.Withdrawal;
+import com.example.trading.service.TransactionalService;
 import com.example.trading.service.UserService;
 import com.example.trading.service.WalletService;
 import com.example.trading.service.WithdrawalService;
@@ -26,8 +28,10 @@ public class WithdrawalController {
     @Autowired
     private UserService userService;
 
-//    @Autowired
-//    private WalletTransactionService walletTransactionService;
+    @Autowired
+    private TransactionalService transactionalService;
+
+
 
     @PostMapping("/api/withdrawal/{amount}")
     public ResponseEntity<?> withdrawalRequest(
@@ -40,8 +44,12 @@ public class WithdrawalController {
         Withdrawal withdrawal = withdrawalService.requestWithdrawal(amount,user);
         walletService.addBalance(userWallet,-withdrawal.getAmount());
 
-//        WalletTransaction walletTransaction = wallet
-
+        WalletTransaction walletTransaction = transactionalService.createTransaction(
+                userWallet,
+                WalletTransactionType.WITHDRAWAL,null,
+                "bank account withdrawal",
+                withdrawal.getAmount()
+        );
         return new ResponseEntity<>(withdrawal, HttpStatus.OK);
     }
 
